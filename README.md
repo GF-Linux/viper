@@ -16,8 +16,7 @@ víbora é outra coisa: uma serpente, um indivíduo próprio. É a biblioteca au
 ## A regra do arsenal
 
 **Toda função aqui é escrita à mão, primeiro no papel.** Ela entra quando um problema real do
-estudo pede por ela. (A primeira, `replacement`, foi escrita pelo Claude a pedido dele, sobre o
-desenho que ele decidiu.) O exercício continua sendo resolvido; o que ele ensina vira ferramenta por
+estudo pede por ela. O exercício continua sendo resolvido; o que ele ensina vira ferramenta por
 cima dele.
 
 O comando `viper` é a parte que não é escrita à mão: ele só instala, atualiza e mostra a
