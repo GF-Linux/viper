@@ -57,3 +57,63 @@ def replacement(lista, palavra, condicao):
     if hasattr(lista, "index") and hasattr(lista, "name") and hasattr(lista, "map"):
         return type(lista)(nova, index=lista.index, name=lista.name)    # coluna do pandas
     return nova
+
+
+def compare(v1, v2):
+    """Iguala o tamanho de duas versões, completando com zeros, para comparar por fora.
+
+    Nasceu do Compare Version Numbers (LeetCode 165) e da frase sys.version_info >= (maior, menor):
+    3.12 e 3.12.0.0.0 são a mesma versão, mas [3, 12] e [3, 12, 0, 0, 0] não são iguais
+    para o Python. A função só iguala; quem compara é quem chama, com < == >=.
+
+    v1, v2   texto ('3.12'), número (3.12), lista, tupla ou sys.version_info
+             — de cada parte fica só o primeiro número ('v2' → 2, '0rc1' → 0);
+             a parte sem número nenhum sai ('final', do sys.version_info)
+
+    Devolve os dois lados, sempre como lista, com o mesmo tamanho.
+
+    >>> compare('3.12', '3.12.0.0.0')
+    ([3, 12, 0, 0, 0], [3, 12, 0, 0, 0])
+
+    >>> a, b = compare('3.12', '3.12.0.1')
+    >>> a, b
+    ([3, 12, 0, 0], [3, 12, 0, 1])
+    >>> a < b
+    True
+
+    Comparar como texto erra; como número de cada parte, não:
+
+    >>> '1.2' < '1.10'
+    False
+    >>> a, b = compare('1.2', '1.10')
+    >>> a < b
+    True
+
+    O sistema entra como está (aqui, a tupla que o sys.version_info do 3.12.14 é):
+
+    >>> compare((3, 12, 14, 'final', 0), '3.12')
+    ([3, 12, 14, 0], [3, 12, 0, 0])
+
+    Versão como número perde o zero do fim antes de chegar aqui: 3.10 é 3.1.
+
+    >>> compare(3.10, '3.1')
+    ([3, 1], [3, 1])
+    """
+    a, b = _numeros_da_versao(v1), _numeros_da_versao(v2)
+    tamanho = max(len(a), len(b))
+    return a + [0] * (tamanho - len(a)), b + [0] * (tamanho - len(b))
+
+
+def _numeros_da_versao(v):
+    """O primeiro número de cada parte da versão; a parte sem número sai."""
+    import re
+    if isinstance(v, (list, tuple)):          # lista, tupla e sys.version_info
+        partes = [str(p) for p in v]
+    else:                                      # texto e número
+        partes = str(v).split(".")
+    numeros = []
+    for parte in partes:
+        achado = re.search(r"\d+", parte)
+        if achado:
+            numeros.append(int(achado.group()))
+    return numeros
