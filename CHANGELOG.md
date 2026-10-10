@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1
+
+- `viper install --global` num Python que já tem a viper (do `pip install --user`) não dá mais
+  "nada a fazer" com código de erro: diz que ela já está ali, e sai com 0.
+- `viper install --global` dentro de uma pasta com ambiente virtual (`.venv/`) agora avisa na hora:
+  o ambiente virtual não enxerga o global, e o `import viper` ali (e no VS Code) daria
+  `ModuleNotFoundError`. Para o projeto: `viper install`.
+
 ## 0.2.0
 
 - `replacement(lista, palavra, condicao)`: troca por `palavra` cada item em que a condição for

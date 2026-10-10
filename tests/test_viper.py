@@ -73,7 +73,7 @@ def test_nao_escreve_por_cima_da_viper_do_pip():
         (pacotes / "viper").mkdir()                     # uma viper que não é do comando
         (pacotes / "viper" / "__init__.py").write_text("__version__ = '9.9.9'\n")
         codigo, saida = _viper(["install"], t / "proj", t / "dados")
-        assert codigo == 1 and "não foi posta pelo comando" in saida, saida
+        assert codigo == 0 and "já enxerga a viper" in saida, saida
         assert (pacotes / "viper" / "__init__.py").read_text() == "__version__ = '9.9.9'\n"
         codigo, saida = _viper(["uninstall"], t / "proj", t / "dados")
         assert (pacotes / "viper" / "__init__.py").exists(), saida
@@ -130,6 +130,23 @@ def test_erros_de_uso_saem_com_2():
         assert _viper(["docs", "a", "b"], t, Path(t) / "dados")[0] == 2
         assert _viper(["--nada"], t, Path(t) / "dados")[0] == 2
 
+
+
+def test_global_avisa_que_o_venv_da_pasta_nao_enxerga():
+    with tempfile.TemporaryDirectory() as t:
+        t = Path(t)
+        (t / "proj").mkdir()
+        _venv(t / "proj")
+        usuario = t / "usuario"
+        env_extra = {"PYTHONUSERBASE": str(usuario)}
+        env = dict(os.environ, PYTHONPATH=str(SRC), XDG_DATA_HOME=str(t / "dados"), NO_COLOR="1", **env_extra)
+        env.pop("VIRTUAL_ENV", None)
+        python_fora = "/usr/bin/python3" if Path("/usr/bin/python3").exists() else sys.executable
+        r = subprocess.run([sys.executable, "-m", "viper_cli", "install", "--global", "--python", python_fora],
+                           cwd=t / "proj", env=env, capture_output=True, text=True, timeout=120)
+        saida = r.stdout + r.stderr
+        assert r.returncode == 0, saida
+        assert "NÃO enxerga o global" in saida and "viper install" in saida, saida
 
 if __name__ == "__main__":
     falhas = 0

@@ -198,13 +198,11 @@ def instalar(escopo, python, como):
     else:
         destino = Path(info["pacotes"])
 
-    # este Python já enxerga uma viper que não é do comando (pip, ou a cópia de desenvolvimento)
+    # este Python já enxerga uma viper que não é do comando (pip, ou a cópia de desenvolvimento):
+    # não é erro — ela já está ali; só não é o comando que cuida dela
     if info["viper_em"] and not _e_do_comando(Path(info["viper_em"]).parent.parent):
-        raise Recusa(
-            f"o Python {info['versao']} já enxerga a viper em {Path(info['viper_em']).parent},\n"
-            f"  e ela não foi posta pelo comando (veio do pip, ou é uma cópia de desenvolvimento).\n"
-            f"  Nada a fazer aqui: quem atualiza essa é o  viper upgrade  (ou o  git pull , na cópia\n"
-            f"  de desenvolvimento).")
+        return {"destino": Path(info["viper_em"]).parent, "info": info, "ja_estava": True,
+                "importa": None, "erro": ""}
 
     destino.mkdir(parents=True, exist_ok=True)
     _copiar(destino)
@@ -214,7 +212,18 @@ def instalar(escopo, python, como):
                   "quando": datetime.datetime.now().isoformat(timespec="seconds")})
     _gravar_registro(itens)
     versao, erro = _confirmar(info["executavel"])
-    return {"destino": destino, "info": info, "importa": versao, "erro": erro}
+    return {"destino": destino, "info": info, "importa": versao, "erro": erro, "ja_estava": False}
+
+
+def ambiente_da_pasta(pasta):
+    """O ambiente virtual que roda nesta pasta (o da pasta ou o ativo), se houver."""
+    py = _venv_da_pasta(Path(pasta).resolve())
+    if py:
+        return py
+    ativo = os.environ.get("VIRTUAL_ENV")
+    if ativo and (Path(ativo) / "bin" / "python").exists():
+        return Path(ativo) / "bin" / "python"
+    return None
 
 
 def remover(pasta_pacotes):

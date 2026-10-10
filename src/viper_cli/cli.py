@@ -151,9 +151,16 @@ def cmd_install(op):
     print(f"{c('viper install', 'verde', 'negrito')} · {escopo} · {como}")
     r = alvo.instalar(escopo, python, como)
     info = r["info"]
-    print(f"  {c('✓', 'verde')} instalada em {_casa(r['destino'] / alvo.PACOTE)}")
-    print(f"    Python {info['versao']} · {_casa(info['executavel'])}")
-    if r["importa"]:
+    if r["ja_estava"]:
+        print(f"  {c('✓', 'verde')} este Python já enxerga a viper: {_casa(r['destino'])}")
+        print(f"    Python {info['versao']} · {_casa(info['executavel'])}")
+        print(c("  · ela veio do pip (ou é uma cópia de desenvolvimento): quem atualiza é o  viper upgrade", "cinza"))
+    else:
+        print(f"  {c('✓', 'verde')} instalada em {_casa(r['destino'] / alvo.PACOTE)}")
+        print(f"    Python {info['versao']} · {_casa(info['executavel'])}")
+    if r["ja_estava"]:
+        pass                                  # nada foi escrito: não há o que conferir
+    elif r["importa"]:
         print(c(f"  · conferido: import viper responde a versão {r['importa']}", "cinza"))
     else:
         print(c("  ⚠ os arquivos estão lá, mas  import viper  falhou neste Python:", "laranja"))
@@ -162,7 +169,26 @@ def cmd_install(op):
     if escopo == "global":
         print(c("  · vale para este Python em qualquer pasta, menos dentro de ambiente virtual (lá, viper install)",
                 "cinza"))
+        _avisar_ambiente_da_pasta()
     return 0
+
+
+def _avisar_ambiente_da_pasta():
+    """O global não entra em ambiente virtual. Se esta pasta tem um, dizer na hora, e não no import."""
+    py = alvo.ambiente_da_pasta(Path.cwd())
+    if not py:
+        return
+    try:
+        info = alvo.perguntar(py)
+    except alvo.Recusa:
+        return
+    if info["viper_em"]:
+        print(c(f"  · esta pasta usa {_casa(info['prefixo'])}, e ele também enxerga a viper", "cinza"))
+        return
+    print()
+    print(c(f"  ⚠ esta pasta usa o ambiente virtual {_casa(info['prefixo'])}, e ele NÃO enxerga o global:", "laranja"))
+    print(c("    é para isso que ele existe — isolar o projeto. O import viper aqui (e no VS Code, que usa", "laranja"))
+    print(c("    esse ambiente) vai dar ModuleNotFoundError. Para este projeto:   viper install", "laranja"))
 
 
 def cmd_uninstall(op):
